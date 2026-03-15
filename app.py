@@ -1,67 +1,158 @@
-from flask import Flask, jsonify, request, render_template_string
+from flask import Flask, jsonify, request, render_template_string, session, redirect
+import sqlite3
 import os
 
 app = Flask(__name__)
+app.secret_key = "secret123"
+DB = "students.db"
 
-students = [
-    {"id": 1, "name": "John", "grade": 10, "section": "Zechariah"}
-]
 
-# UI Template
-html_ui = """
-<!DOCTYPE html>
+def init_db():
+    conn = sqlite3.connect(DB)
+    cur = conn.cursor()
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS students(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        grade INTEGER,
+        section TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+init_db()
+
+
+# LOGIN PAGE
+login_page = """
 <html>
 <head>
-<title>Student Manager</title>
+<title>Login</title>
+
 <style>
 body{
-font-family: Arial;
-background: linear-gradient(135deg,#667eea,#764ba2);
+font-family:Arial;
+background:linear-gradient(135deg,#141e30,#243b55);
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
 color:white;
-text-align:center;
-padding:30px;
 }
 
-.container{
-background:white;
-color:black;
-padding:20px;
+.box{
+background:rgba(255,255,255,0.1);
+padding:40px;
 border-radius:10px;
-width:500px;
-margin:auto;
+text-align:center;
 }
 
 input{
-padding:8px;
-margin:5px;
+padding:10px;
+margin:10px;
+border:none;
+border-radius:5px;
 }
 
 button{
-padding:8px 12px;
-margin:5px;
+padding:10px 20px;
 border:none;
-background:#667eea;
+background:#00c6ff;
 color:white;
 border-radius:5px;
 cursor:pointer;
-}
-
-table{
-margin:auto;
-margin-top:20px;
-border-collapse:collapse;
-}
-
-td,th{
-padding:8px;
-border:1px solid #ddd;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🎓 Student CRUD Dashboard</h1>
+<div class="box">
+
+<h2>Admin Login</h2>
+
+<form method="POST">
+
+<input name="username" placeholder="Username"><br>
+<input name="password" type="password" placeholder="Password"><br>
+
+<button>Login</button>
+
+</form>
+
+</div>
+
+</body>
+</html>
+"""
+
+
+# DASHBOARD
+dashboard = """
+<!DOCTYPE html>
+<html>
+<head>
+<title>Student Manager</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:linear-gradient(135deg,#141e30,#243b55);
+color:white;
+text-align:center;
+padding:30px;
+}
+
+.container{
+background:rgba(255,255,255,0.1);
+padding:25px;
+border-radius:15px;
+width:700px;
+margin:auto;
+}
+
+input{
+padding:10px;
+margin:5px;
+border-radius:5px;
+border:none;
+}
+
+button{
+padding:10px 15px;
+margin:5px;
+border:none;
+border-radius:5px;
+background:#00c6ff;
+color:white;
+cursor:pointer;
+}
+
+table{
+width:100%;
+margin-top:20px;
+border-collapse:collapse;
+}
+
+th,td{
+padding:10px;
+border-bottom:1px solid rgba(255,255,255,0.2);
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🎓 Student Manager</h1>
 
 <div class="container">
 
@@ -73,38 +164,55 @@ border:1px solid #ddd;
 
 <br>
 
-<button onclick="addStudent()">Add Student</button>
+<button onclick="addStudent()">Add</button>
 
 <h3>Students</h3>
 
-<table id="studentTable">
+<table id="table">
 <tr>
 <th>ID</th>
 <th>Name</th>
 <th>Grade</th>
 <th>Section</th>
-<th>Actions</th>
+<th>Action</th>
 </tr>
 </table>
 
+<h3>Student Grade Chart</h3>
+
+<canvas id="chart"></canvas>
+
 </div>
+
 
 <script>
 
+let chart
+
 function loadStudents(){
+
 fetch('/students')
 .then(res=>res.json())
 .then(data=>{
-let table=document.getElementById("studentTable")
+
+let table=document.getElementById("table")
+
 table.innerHTML=`<tr>
 <th>ID</th>
 <th>Name</th>
 <th>Grade</th>
 <th>Section</th>
-<th>Actions</th>
+<th>Action</th>
 </tr>`
 
+let names=[]
+let grades=[]
+
 data.forEach(s=>{
+
+names.push(s.name)
+grades.push(s.grade)
+
 table.innerHTML+=`
 <tr>
 <td>${s.id}</td>
@@ -115,39 +223,53 @@ table.innerHTML+=`
 <button onclick="deleteStudent(${s.id})">Delete</button>
 </td>
 </tr>`
+
 })
+
+drawChart(names,grades)
+
 })
 }
 
-function addStudent(){
 
-let name=document.getElementById("name").value
-let grade=document.getElementById("grade").value
-let section=document.getElementById("section").value
+function drawChart(names,grades){
+
+if(chart) chart.destroy()
+
+chart=new Chart(document.getElementById('chart'),{
+type:'bar',
+data:{
+labels:names,
+datasets:[{
+label:'Grades',
+data:grades
+}]
+}
+})
+
+}
+
+
+function addStudent(){
 
 fetch('/students',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({
-name:name,
-grade:grade,
-section:section
+name:document.getElementById("name").value,
+grade:document.getElementById("grade").value,
+section:document.getElementById("section").value
 })
-})
-.then(res=>res.json())
-.then(()=>{
-loadStudents()
-})
+}).then(()=>loadStudents())
+
 }
+
 
 function deleteStudent(id){
 
 fetch('/students/'+id,{
 method:'DELETE'
-})
-.then(()=>{
-loadStudents()
-})
+}).then(()=>loadStudents())
 
 }
 
@@ -159,65 +281,81 @@ loadStudents()
 </html>
 """
 
-# UI
-@app.route('/')
+
+# LOGIN ROUTE
+@app.route("/", methods=["GET", "POST"])
+def login():
+
+    if request.method == "POST":
+
+        if request.form["username"] == "admin" and request.form["password"] == "1234":
+            session["user"] = "admin"
+            return redirect("/dashboard")
+
+    return login_page
+
+
+@app.route("/dashboard")
 def home():
-    return render_template_string(html_ui)
+
+    if "user" not in session:
+        return redirect("/")
+
+    return render_template_string(dashboard)
 
 
-# READ
-@app.route('/students', methods=['GET'])
+# CRUD API
+@app.route("/students", methods=["GET"])
 def get_students():
+
+    conn = sqlite3.connect(DB)
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM students")
+    rows = cur.fetchall()
+
+    conn.close()
+
+    students=[{"id":r[0],"name":r[1],"grade":r[2],"section":r[3]} for r in rows]
+
     return jsonify(students)
 
 
-# CREATE
-@app.route('/students', methods=['POST'])
+@app.route("/students", methods=["POST"])
 def add_student():
 
     data=request.get_json()
 
-    new_id=len(students)+1
+    conn=sqlite3.connect(DB)
+    cur=conn.cursor()
 
-    student={
-    "id":new_id,
-    "name":data["name"],
-    "grade":data["grade"],
-    "section":data["section"]
-    }
+    cur.execute(
+        "INSERT INTO students(name,grade,section) VALUES(?,?,?)",
+        (data["name"],data["grade"],data["section"])
+    )
 
-    students.append(student)
+    conn.commit()
+    conn.close()
 
-    return jsonify(student)
-
-
-# UPDATE
-@app.route('/students/<int:id>', methods=['PUT'])
-def update_student(id):
-
-    data=request.get_json()
-
-    for student in students:
-        if student["id"]==id:
-            student["name"]=data["name"]
-            student["grade"]=data["grade"]
-            student["section"]=data["section"]
-            return jsonify(student)
-
-    return jsonify({"error":"Student not found"}),404
+    return jsonify({"message":"added"})
 
 
-# DELETE
-@app.route('/students/<int:id>', methods=['DELETE'])
+@app.route("/students/<int:id>", methods=["DELETE"])
 def delete_student(id):
 
-    global students
+    conn=sqlite3.connect(DB)
+    cur=conn.cursor()
 
-    students=[s for s in students if s["id"]!=id]
+    cur.execute("DELETE FROM students WHERE id=?", (id,))
 
-    return jsonify({"message":"Student deleted"})
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message":"deleted"})
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
+
     port=int(os.environ.get("PORT",5000))
+
     app.run(host="0.0.0.0",port=port)
