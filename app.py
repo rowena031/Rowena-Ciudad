@@ -44,37 +44,23 @@ font-weight:bold;
 transition:0.2s;
 }
 
-/* Add Button */
 .add-btn{
 background:#4CAF50;
 color:white;
 }
 
-.add-btn:hover{
-background:#3f9142;
-transform:scale(1.05);
-}
-
-/* Edit Button */
 .edit-btn{
 background:#FFC107;
 color:black;
 }
 
-.edit-btn:hover{
-background:#ffb300;
-transform:scale(1.1);
-}
-
-/* Delete Button */
 .delete-btn{
 background:#E53935;
 color:white;
 }
 
-.delete-btn:hover{
-background:#c62828;
-transform:scale(1.1);
+button:hover{
+transform:scale(1.05);
 }
 
 table{
@@ -101,27 +87,19 @@ border-bottom:1px solid rgba(255,255,255,0.3);
 
 <h3>Add / Edit Student</h3>
 
-<input id="id" placeholder="ID (auto for edit)">
+<input id="studentId" placeholder="ID for update">
 <input id="name" placeholder="Name">
 <input id="grade" placeholder="Grade">
 <input id="section" placeholder="Section">
 
 <br>
 
-<button class="add-btn" onclick="addStudent()">➕ Add Student</button>
+<button class="add-btn" onclick="addStudent()">➕ Add</button>
 <button class="edit-btn" onclick="updateStudent()">✏️ Update</button>
 
 <h3>Students</h3>
 
-<table id="table">
-<tr>
-<th>ID</th>
-<th>Name</th>
-<th>Grade</th>
-<th>Section</th>
-<th>Action</th>
-</tr>
-</table>
+<table id="table"></table>
 
 <h3>Student Grade Chart</h3>
 
@@ -142,13 +120,15 @@ fetch('/students')
 
 let table=document.getElementById("table")
 
-table.innerHTML=`<tr>
+table.innerHTML=`
+<tr>
 <th>ID</th>
 <th>Name</th>
 <th>Grade</th>
 <th>Section</th>
 <th>Action</th>
-</tr>`
+</tr>
+`
 
 let names=[]
 let grades=[]
@@ -165,29 +145,47 @@ table.innerHTML+=`
 <td>${s.grade}</td>
 <td>${s.section}</td>
 <td>
-<button class="edit-btn" onclick="fillForm(${s.id},'${s.name}',${s.grade},'${s.section}')">✏️ Edit</button>
+<button class="edit-btn" onclick="editStudent(${s.id}, '${s.name}', '${s.grade}', '${s.section}')">✏️ Edit</button>
 <button class="delete-btn" onclick="deleteStudent(${s.id})">🗑 Delete</button>
 </td>
-</tr>`
+</tr>
+`
+
 })
 
 drawChart(names,grades)
 
 })
+
 }
 
-function fillForm(id,name,grade,section){
+function editStudent(id,name,grade,section){
 
-document.getElementById("id").value=id
+document.getElementById("studentId").value=id
 document.getElementById("name").value=name
 document.getElementById("grade").value=grade
 document.getElementById("section").value=section
 
 }
 
+function addStudent(){
+
+fetch('/students',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+name:document.getElementById("name").value,
+grade:document.getElementById("grade").value,
+section:document.getElementById("section").value
+})
+})
+.then(()=>loadStudents())
+
+}
+
 function updateStudent(){
 
-let id=document.getElementById("id").value
+let id=document.getElementById("studentId").value
 
 fetch('/students/'+id,{
 method:'PUT',
@@ -197,7 +195,17 @@ name:document.getElementById("name").value,
 grade:document.getElementById("grade").value,
 section:document.getElementById("section").value
 })
-}).then(()=>loadStudents())
+})
+.then(()=>loadStudents())
+
+}
+
+function deleteStudent(id){
+
+fetch('/students/'+id,{
+method:'DELETE'
+})
+.then(()=>loadStudents())
 
 }
 
@@ -215,28 +223,6 @@ data:grades
 }]
 }
 })
-
-}
-
-function addStudent(){
-
-fetch('/students',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-name:document.getElementById("name").value,
-grade:document.getElementById("grade").value,
-section:document.getElementById("section").value
-})
-}).then(()=>loadStudents())
-
-}
-
-function deleteStudent(id){
-
-fetch('/students/'+id,{
-method:'DELETE'
-}).then(()=>loadStudents())
 
 }
 
