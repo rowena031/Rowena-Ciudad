@@ -34,9 +34,10 @@ login_page = """
 <title>Login</title>
 
 <style>
+
 body{
 font-family:Arial;
-background:linear-gradient(135deg,#141e30,#243b55);
+background:linear-gradient(135deg,#9CAF88,#7A9D76);
 display:flex;
 justify-content:center;
 align-items:center;
@@ -45,27 +46,34 @@ color:white;
 }
 
 .box{
-background:rgba(255,255,255,0.1);
+background:rgba(255,255,255,0.2);
 padding:40px;
-border-radius:10px;
+border-radius:12px;
 text-align:center;
+backdrop-filter:blur(10px);
 }
 
 input{
 padding:10px;
 margin:10px;
 border:none;
-border-radius:5px;
+border-radius:6px;
 }
 
 button{
 padding:10px 20px;
 border:none;
-background:#00c6ff;
+background:#6B8F71;
 color:white;
-border-radius:5px;
+border-radius:6px;
 cursor:pointer;
+font-weight:bold;
 }
+
+button:hover{
+background:#567a5c;
+}
+
 </style>
 </head>
 
@@ -73,7 +81,7 @@ cursor:pointer;
 
 <div class="box">
 
-<h2>Admin Login</h2>
+<h2>🌿 Admin Login</h2>
 
 <form method="POST">
 
@@ -104,24 +112,26 @@ dashboard = """
 
 body{
 font-family:Arial;
-background:linear-gradient(135deg,#141e30,#243b55);
+background:linear-gradient(135deg,#9CAF88,#7A9D76);
 color:white;
 text-align:center;
 padding:30px;
 }
 
 .container{
-background:rgba(255,255,255,0.1);
+background:rgba(255,255,255,0.2);
+backdrop-filter:blur(10px);
 padding:25px;
 border-radius:15px;
 width:700px;
 margin:auto;
+box-shadow:0 8px 20px rgba(0,0,0,0.2);
 }
 
 input{
 padding:10px;
 margin:5px;
-border-radius:5px;
+border-radius:6px;
 border:none;
 }
 
@@ -129,21 +139,27 @@ button{
 padding:10px 15px;
 margin:5px;
 border:none;
-border-radius:5px;
-background:#00c6ff;
+border-radius:6px;
+background:#6B8F71;
 color:white;
 cursor:pointer;
+font-weight:bold;
+}
+
+button:hover{
+background:#567a5c;
 }
 
 table{
 width:100%;
 margin-top:20px;
 border-collapse:collapse;
+background:rgba(255,255,255,0.1);
 }
 
 th,td{
 padding:10px;
-border-bottom:1px solid rgba(255,255,255,0.2);
+border-bottom:1px solid rgba(255,255,255,0.3);
 }
 
 </style>
@@ -152,7 +168,7 @@ border-bottom:1px solid rgba(255,255,255,0.2);
 
 <body>
 
-<h1>🎓 Student Manager</h1>
+<h1>🌿 Student Manager</h1>
 
 <div class="container">
 
@@ -164,7 +180,7 @@ border-bottom:1px solid rgba(255,255,255,0.2);
 
 <br>
 
-<button onclick="addStudent()">Add</button>
+<button onclick="addStudent()">Add Student</button>
 
 <h3>Students</h3>
 
@@ -241,8 +257,9 @@ type:'bar',
 data:{
 labels:names,
 datasets:[{
-label:'Grades',
-data:grades
+label:'Grade Level',
+data:grades,
+backgroundColor:"#6B8F71"
 }]
 }
 })
