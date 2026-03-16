@@ -27,7 +27,6 @@ def init_db():
 init_db()
 
 
-# LOGIN PAGE
 login_page = """
 <html>
 <head>
@@ -47,16 +46,14 @@ color:white;
 .box{
 background:rgba(255,255,255,0.2);
 padding:40px;
-border-radius:12px;
-text-align:center;
-backdrop-filter:blur(10px);
+border-radius:10px;
 }
 
 input{
 padding:10px;
 margin:10px;
 border:none;
-border-radius:6px;
+border-radius:5px;
 }
 
 button{
@@ -64,7 +61,7 @@ padding:10px 20px;
 border:none;
 background:#6B8F71;
 color:white;
-border-radius:6px;
+border-radius:5px;
 cursor:pointer;
 }
 </style>
@@ -92,11 +89,11 @@ cursor:pointer;
 """
 
 
-# DASHBOARD
 dashboard = """
 <!DOCTYPE html>
 <html>
 <head>
+
 <title>Student Manager</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -113,7 +110,6 @@ padding:30px;
 
 .container{
 background:rgba(255,255,255,0.2);
-backdrop-filter:blur(10px);
 padding:25px;
 border-radius:15px;
 width:750px;
@@ -123,17 +119,16 @@ margin:auto;
 input{
 padding:10px;
 margin:5px;
-border-radius:6px;
 border:none;
+border-radius:5px;
 }
 
 button{
 padding:8px 12px;
 margin:4px;
 border:none;
-border-radius:6px;
+border-radius:5px;
 cursor:pointer;
-font-weight:bold;
 }
 
 .add{background:#4CAF50;color:white;}
@@ -152,30 +147,21 @@ padding:10px;
 border-bottom:1px solid rgba(255,255,255,0.3);
 }
 
-.stat{
-font-size:18px;
-margin:10px;
-}
-
 </style>
 
 </head>
 
 <body>
 
-<h1>🌿 Student Manager Dashboard</h1>
+<h1>🌿 Student Manager</h1>
 
 <div class="container">
-
-<div class="stat">
-Total Students: <span id="count">0</span>
-</div>
 
 <input id="search" placeholder="Search student..." onkeyup="searchStudent()">
 
 <h3>Add / Edit Student</h3>
 
-<input id="id" placeholder="ID for update">
+<input id="id" placeholder="ID (for update)">
 <input id="name" placeholder="Name">
 <input id="grade" placeholder="Grade">
 <input id="section" placeholder="Section">
@@ -195,7 +181,6 @@ Total Students: <span id="count">0</span>
 
 </div>
 
-
 <script>
 
 let students=[]
@@ -208,9 +193,6 @@ fetch('/students')
 .then(data=>{
 
 students=data
-
-document.getElementById("count").innerText=data.length
-
 drawTable(data)
 
 let names=data.map(s=>s.name)
@@ -226,13 +208,15 @@ function drawTable(data){
 
 let table=document.getElementById("table")
 
-table.innerHTML=`<tr>
+table.innerHTML=`
+<tr>
 <th>ID</th>
 <th>Name</th>
 <th>Grade</th>
 <th>Section</th>
 <th>Action</th>
-</tr>`
+</tr>
+`
 
 data.forEach(s=>{
 
@@ -243,10 +227,11 @@ table.innerHTML+=`
 <td>${s.grade}</td>
 <td>${s.section}</td>
 <td>
-<button class="edit" onclick="fillForm(${s.id},'${s.name}',${s.grade},'${s.section}')">Edit</button>
+<button class="edit" onclick="fillForm(${s.id},'${s.name}','${s.grade}','${s.section}')">Edit</button>
 <button class="delete" onclick="deleteStudent(${s.id})">Delete</button>
 </td>
-</tr>`
+</tr>
+`
 
 })
 
@@ -275,12 +260,12 @@ function drawChart(names,grades){
 
 if(chart) chart.destroy()
 
-chart=new Chart(document.getElementById('chart'),{
-type:'bar',
+chart=new Chart(document.getElementById("chart"),{
+type:"bar",
 data:{
 labels:names,
 datasets:[{
-label:'Grade Level',
+label:"Grade Level",
 data:grades,
 backgroundColor:"#6B8F71"
 }]
@@ -291,13 +276,13 @@ backgroundColor:"#6B8F71"
 
 function addStudent(){
 
-fetch('/students',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
+fetch("/students",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
-name:name.value,
-grade:grade.value,
-section:section.value
+name:document.getElementById("name").value,
+grade:document.getElementById("grade").value,
+section:document.getElementById("section").value
 })
 }).then(()=>loadStudents())
 
@@ -307,13 +292,13 @@ function updateStudent(){
 
 let id=document.getElementById("id").value
 
-fetch('/students/'+id,{
-method:'PUT',
-headers:{'Content-Type':'application/json'},
+fetch("/students/"+id,{
+method:"PUT",
+headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
-name:name.value,
-grade:grade.value,
-section:section.value
+name:document.getElementById("name").value,
+grade:document.getElementById("grade").value,
+section:document.getElementById("section").value
 })
 }).then(()=>loadStudents())
 
@@ -321,8 +306,8 @@ section:section.value
 
 function deleteStudent(id){
 
-fetch('/students/'+id,{
-method:'DELETE'
+fetch("/students/"+id,{
+method:"DELETE"
 }).then(()=>loadStudents())
 
 }
@@ -336,14 +321,13 @@ loadStudents()
 """
 
 
-# LOGIN ROUTE
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET","POST"])
 def login():
 
-    if request.method == "POST":
+    if request.method=="POST":
 
-        if request.form["username"] == "admin" and request.form["password"] == "1234":
-            session["user"] = "admin"
+        if request.form["username"]=="admin" and request.form["password"]=="1234":
+            session["user"]="admin"
             return redirect("/dashboard")
 
     return login_page
@@ -358,15 +342,15 @@ def home():
     return render_template_string(dashboard)
 
 
-# CRUD API
 @app.route("/students", methods=["GET"])
 def get_students():
 
-    conn = sqlite3.connect(DB)
-    cur = conn.cursor()
+    conn=sqlite3.connect(DB)
+    cur=conn.cursor()
 
     cur.execute("SELECT * FROM students")
-    rows = cur.fetchall()
+
+    rows=cur.fetchall()
 
     conn.close()
 
