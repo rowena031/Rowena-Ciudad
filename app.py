@@ -34,7 +34,6 @@ login_page = """
 <title>Login</title>
 
 <style>
-
 body{
 font-family:Arial;
 background:linear-gradient(135deg,#9CAF88,#7A9D76);
@@ -67,13 +66,7 @@ background:#6B8F71;
 color:white;
 border-radius:6px;
 cursor:pointer;
-font-weight:bold;
 }
-
-button:hover{
-background:#567a5c;
-}
-
 </style>
 </head>
 
@@ -123,9 +116,8 @@ background:rgba(255,255,255,0.2);
 backdrop-filter:blur(10px);
 padding:25px;
 border-radius:15px;
-width:700px;
+width:750px;
 margin:auto;
-box-shadow:0 8px 20px rgba(0,0,0,0.2);
 }
 
 input{
@@ -136,19 +128,17 @@ border:none;
 }
 
 button{
-padding:10px 15px;
-margin:5px;
+padding:8px 12px;
+margin:4px;
 border:none;
 border-radius:6px;
-background:#6B8F71;
-color:white;
 cursor:pointer;
 font-weight:bold;
 }
 
-button:hover{
-background:#567a5c;
-}
+.add{background:#4CAF50;color:white;}
+.edit{background:#FFC107;color:black;}
+.delete{background:#E53935;color:white;}
 
 table{
 width:100%;
@@ -162,39 +152,44 @@ padding:10px;
 border-bottom:1px solid rgba(255,255,255,0.3);
 }
 
+.stat{
+font-size:18px;
+margin:10px;
+}
+
 </style>
 
 </head>
 
 <body>
 
-<h1>🌿 Student Manager</h1>
+<h1>🌿 Student Manager Dashboard</h1>
 
 <div class="container">
 
-<h3>Add Student</h3>
+<div class="stat">
+Total Students: <span id="count">0</span>
+</div>
 
+<input id="search" placeholder="Search student..." onkeyup="searchStudent()">
+
+<h3>Add / Edit Student</h3>
+
+<input id="id" placeholder="ID for update">
 <input id="name" placeholder="Name">
 <input id="grade" placeholder="Grade">
 <input id="section" placeholder="Section">
 
 <br>
 
-<button onclick="addStudent()">Add Student</button>
+<button class="add" onclick="addStudent()">Add</button>
+<button class="edit" onclick="updateStudent()">Update</button>
 
 <h3>Students</h3>
 
-<table id="table">
-<tr>
-<th>ID</th>
-<th>Name</th>
-<th>Grade</th>
-<th>Section</th>
-<th>Action</th>
-</tr>
-</table>
+<table id="table"></table>
 
-<h3>Student Grade Chart</h3>
+<h3>Grade Chart</h3>
 
 <canvas id="chart"></canvas>
 
@@ -203,6 +198,7 @@ border-bottom:1px solid rgba(255,255,255,0.3);
 
 <script>
 
+let students=[]
 let chart
 
 function loadStudents(){
@@ -210,6 +206,23 @@ function loadStudents(){
 fetch('/students')
 .then(res=>res.json())
 .then(data=>{
+
+students=data
+
+document.getElementById("count").innerText=data.length
+
+drawTable(data)
+
+let names=data.map(s=>s.name)
+let grades=data.map(s=>s.grade)
+
+drawChart(names,grades)
+
+})
+
+}
+
+function drawTable(data){
 
 let table=document.getElementById("table")
 
@@ -221,13 +234,7 @@ table.innerHTML=`<tr>
 <th>Action</th>
 </tr>`
 
-let names=[]
-let grades=[]
-
 data.forEach(s=>{
-
-names.push(s.name)
-grades.push(s.grade)
 
 table.innerHTML+=`
 <tr>
@@ -236,17 +243,33 @@ table.innerHTML+=`
 <td>${s.grade}</td>
 <td>${s.section}</td>
 <td>
-<button onclick="deleteStudent(${s.id})">Delete</button>
+<button class="edit" onclick="fillForm(${s.id},'${s.name}',${s.grade},'${s.section}')">Edit</button>
+<button class="delete" onclick="deleteStudent(${s.id})">Delete</button>
 </td>
 </tr>`
 
 })
 
-drawChart(names,grades)
-
-})
 }
 
+function fillForm(id,name,grade,section){
+
+document.getElementById("id").value=id
+document.getElementById("name").value=name
+document.getElementById("grade").value=grade
+document.getElementById("section").value=section
+
+}
+
+function searchStudent(){
+
+let q=document.getElementById("search").value.toLowerCase()
+
+let filtered=students.filter(s=>s.name.toLowerCase().includes(q))
+
+drawTable(filtered)
+
+}
 
 function drawChart(names,grades){
 
@@ -266,21 +289,35 @@ backgroundColor:"#6B8F71"
 
 }
 
-
 function addStudent(){
 
 fetch('/students',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({
-name:document.getElementById("name").value,
-grade:document.getElementById("grade").value,
-section:document.getElementById("section").value
+name:name.value,
+grade:grade.value,
+section:section.value
 })
 }).then(()=>loadStudents())
 
 }
 
+function updateStudent(){
+
+let id=document.getElementById("id").value
+
+fetch('/students/'+id,{
+method:'PUT',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+name:name.value,
+grade:grade.value,
+section:section.value
+})
+}).then(()=>loadStudents())
+
+}
 
 function deleteStudent(id){
 
@@ -355,6 +392,25 @@ def add_student():
     conn.close()
 
     return jsonify({"message":"added"})
+
+
+@app.route("/students/<int:id>", methods=["PUT"])
+def update_student(id):
+
+    data=request.get_json()
+
+    conn=sqlite3.connect(DB)
+    cur=conn.cursor()
+
+    cur.execute(
+        "UPDATE students SET name=?, grade=?, section=? WHERE id=?",
+        (data["name"],data["grade"],data["section"],id)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message":"updated"})
 
 
 @app.route("/students/<int:id>", methods=["DELETE"])
