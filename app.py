@@ -71,7 +71,7 @@ cursor:pointer;
 
 <div class="box">
 
-<h2>🌿 Admin Login</h2>
+<h2> Admin Login</h2>
 
 <form method="POST">
 
@@ -153,7 +153,7 @@ border-bottom:1px solid rgba(255,255,255,0.3);
 
 <body>
 
-<h1>🌿 Student Manager</h1>
+<h1> Student Manager</h1>
 
 <div class="container">
 
