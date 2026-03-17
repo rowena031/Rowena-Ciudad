@@ -94,7 +94,7 @@ dashboard = """
 <html>
 <head>
 
-<title>Student Manager</title>
+<title>Student Management</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
