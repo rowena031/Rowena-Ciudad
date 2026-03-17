@@ -153,7 +153,7 @@ border-bottom:1px solid rgba(255,255,255,0.3);
 
 <body>
 
-<h1> Student Manager</h1>
+<h1> Student Management</h1>
 
 <div class="container">
 
