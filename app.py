@@ -5,10 +5,6 @@ import os
 app = Flask(_name_)
 app.secret_key = "secret123"
 DB = "students.db"
-# -----------------------------
-# Database Functions
-# -----------------------------
-
 
 
 def init_db():
@@ -98,7 +94,7 @@ dashboard = """
 <html>
 <head>
 
-<title>Student Management</title>
+<title>Student Manager</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -157,7 +153,7 @@ border-bottom:1px solid rgba(255,255,255,0.3);
 
 <body>
 
-<h1> Student Management</h1>
+<h1> Student Manager</h1>
 
 <div class="container">
 
